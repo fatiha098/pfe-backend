@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DocumentController;
@@ -9,7 +10,9 @@ use App\Http\Controllers\StudentController;
 
 Route::apiResource('/documents', DocumentController::class);
 Route::apiResource('/comments', CommentController::class);
+
 Route::apiResource('/students', StudentController::class);
+Route::apiResource('/admins', AdminController::class);
 
 
 
@@ -21,11 +24,11 @@ Route::apiResource('/students', StudentController::class);
 //     Route::post('/student/logout', [StudentController::class, 'logout']);
 // });
 
-Route::post('/admin/login', [AuthController::class, 'loginAdmin']);
-Route::post('/student/login', [AuthController::class, 'loginStudent']);
+Route::post('/admin/login', [AuthController::class, 'adminLogin']);
+Route::post('/student/login', [AuthController::class, 'studentLogin']);
 
-Route::middleware('auth:sanctum')->post('/admin/logout', [AuthController::class, 'logout']);
-Route::middleware('auth:student')->post('/student/logout', [AuthController::class, 'logout']);
-
-Route::middleware('auth:sanctum')->post('/admin/update-password', [AuthController::class, 'updatePasswordAdmin']);
-Route::middleware('auth:student')->post('/student/update-password', [AuthController::class, 'updatePasswordStudent']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::put('/admin/update-password', [AuthController::class, 'updatePasswordAdmin']);
+    Route::put('/student/update-password', [AuthController::class, 'updatePasswordStudent']);
+});

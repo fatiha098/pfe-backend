@@ -59,13 +59,6 @@ class AuthController extends Controller
         ]);
     }
 
-    public function logout(Request $request)
-    {
-        $request->user()->currentAccessToken()->delete();
-
-        return response()->json(['message' => 'Déconnexion réussie.']);
-    }
-
     public function updatePasswordStudent(Request $request)
     {
         $request->validate([
@@ -110,5 +103,12 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Password updated successfully.',
         ]);
+    }
+
+        public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json(['message' => 'Déconnexion réussie.']);
     }
 }
