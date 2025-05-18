@@ -9,7 +9,27 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StudentController;
 
 Route::apiResource('/students', StudentController::class);
-Route::apiResource('/admins', AdminController::class);
+
+// Admin
+
+Route::apiResource('/admins', AdminController::class)->only([
+    'index', 'store', 'show', 'update', 'destroy'
+]);
+
+Route::middleware('auth:sanctum')->prefix('/admin')->group(function () {
+
+    // Étudiants
+    Route::get('/students', [AdminController::class, 'getAllStudents']);
+    Route::delete('/students/{id}', [AdminController::class, 'deleteStudent']);
+
+    // Documents
+    Route::get('/documents', [AdminController::class, 'getAllDocuments']);
+    Route::put('/documents/{id}/validate', [AdminController::class, 'validateDocument']);
+    Route::put('/documents/{id}/reject', [AdminController::class, 'rejectDocument']);
+    Route::put('/documents/{id}', [AdminController::class, 'updateDocument']);
+    Route::delete('/documents/{id}', [AdminController::class, 'deleteDocument']);
+});
+
 
 // Documents 
 
