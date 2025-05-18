@@ -8,21 +8,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StudentController;
 
-Route::apiResource('/documents', DocumentController::class);
-Route::apiResource('/comments', CommentController::class);
-
 Route::apiResource('/students', StudentController::class);
 Route::apiResource('/admins', AdminController::class);
 
+Route::apiResource('/comments', CommentController::class);
+
+Route::apiResource('/documents', DocumentController::class)->only(['index', 'show']);
+    
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('/documents', DocumentController::class)->only(['store', 'update', 'destroy']);
+    Route::get('/documents/{id}/download', [DocumentController::class, 'download']);
+});
 
 
-// Route::middleware('auth:student')->group(function () {
-//     Route::get('/student/profile', function (Request $request) {
-//         return $request->user(); // retourne le Student connecté
-//     });
 
-//     Route::post('/student/logout', [StudentController::class, 'logout']);
-// });
+ // Authetication
 
 Route::post('/admin/login', [AuthController::class, 'adminLogin']);
 Route::post('/student/login', [AuthController::class, 'studentLogin']);

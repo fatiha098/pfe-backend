@@ -12,9 +12,10 @@ class DocumentController extends Controller
     /**
      * Display a listing of the resource.
      */
+    // Accessible sans auth
     public function index()
     {
-        $documents = Document::with('user')->get();
+        $documents = Document::with('student')->latest()->get();
         return response()->json($documents);
     }
 
@@ -37,7 +38,7 @@ class DocumentController extends Controller
             'title' => $request->title,
             'description' => $request->description,
             'file_path' => $path,
-            'user_id' => Auth::id(),
+            'student_id' => auth('student')->id(),
             'is_validated' => $request->is_validated ?? false,
         ]);
 
@@ -45,15 +46,33 @@ class DocumentController extends Controller
             'message' => 'Document uploaded successfully',
             'document' => $document
         ], 201);
+
+    }
+
+    public function download($id)
+    {
+
+        $document = Document::findOrFail($id);
+
+        return Storage::download($document->file_path);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    // Accessible sans auth
+    public function show(Request $request)
     {
-        $document = Document::with('user')->findOrFail($id);
-        return response()->json($document);
+        $query = $request->input('q');
+
+        $document = Document::where('title', 'like', "%$query%")
+                        ->orWhere('description', 'like', "%$query%")
+                        ->get();
+        
+        return response()->json([
+            'message' => 'Document est trouvé',
+            'document' => $document
+        ], 201); 
     }
 
     /**
@@ -86,11 +105,13 @@ class DocumentController extends Controller
     {
         $document = Document::findOrFail($id);
 
-        // Supprimer le fichier du stockage
-        // Storage::disk('public')->delete($document->file_path);
+        if ($document->student_id !== auth('student')->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
 
+        Storage::delete($document->file_path);
         $document->delete();
 
-        return response()->json(['message' => 'Document deleted successfully']);
+        return response()->json(['message' => 'Document deleted']);
     }
 }

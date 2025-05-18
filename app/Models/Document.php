@@ -13,12 +13,17 @@ class Document extends Model
         'title',
         'file_path',
         'description',
-        'user_id',
+        'student_id',
         'is_validated',
     ];
 
-    public function user()
+    public function student()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Student::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
     }
 }
