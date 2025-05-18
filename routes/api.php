@@ -11,7 +11,7 @@ use App\Http\Controllers\StudentController;
 Route::apiResource('/students', StudentController::class);
 Route::apiResource('/admins', AdminController::class);
 
-Route::apiResource('/comments', CommentController::class);
+// Documents 
 
 Route::apiResource('/documents', DocumentController::class)->only(['index', 'show']);
     
@@ -20,9 +20,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/documents/{id}/download', [DocumentController::class, 'download']);
 });
 
+// Comments
 
+Route::apiResource('/comments', CommentController::class)->middleware('auth:sanctum');
 
- // Authetication
+// Authentication
 
 Route::post('/admin/login', [AuthController::class, 'adminLogin']);
 Route::post('/student/login', [AuthController::class, 'studentLogin']);

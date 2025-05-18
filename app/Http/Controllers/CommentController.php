@@ -12,13 +12,12 @@ class CommentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+     public function index($documentId)
     {
-        if ($request->has('document_id')) {
-            $comments = Comment::where('document_id', $request->document_id)->with('user')->get();
-        } else {
-            $comments = Comment::with(['user', 'document'])->get();
-        }
+        $comments = Comment::with('student')
+            ->where('document_id', $documentId)
+            ->latest()
+            ->get();
 
         return response()->json($comments);
     }
@@ -26,21 +25,25 @@ class CommentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, $documentId)
+     public function store(Request $request, $documentId)
     {
         $request->validate([
+            'student_id' => 'required|exists:students,id',
             'content' => 'required|string|max:1000',
         ]);
 
         $document = Document::findOrFail($documentId);
 
         $comment = Comment::create([
-            'content' => $request->content,
-            'user_id' => Auth::id(),
+            'content' => $request->input('content'),
+            'student_id' => $request->input('student_id'),
             'document_id' => $document->id,
         ]);
 
-        return response()->json(['message' => 'Comment added successfully', 'comment' => $comment], 201);
+        return response()->json([
+            'message' => 'Commentaire ajouté avec succès',
+            'comment' => $comment->load('student')
+        ], 201);
     }
 
     /**
@@ -48,8 +51,7 @@ class CommentController extends Controller
      */
     public function show($id)
     {
-        $comment = Comment::with(['user', 'document'])->findOrFail($id);
-        return response()->json($comment);
+        //
     }
 
     /**
@@ -57,38 +59,34 @@ class CommentController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $comment = Comment::findOrFail($id);
-
-        // Optionnel : autoriser seulement le propriétaire du commentaire
-        if ($comment->user_id !== auth()->id()) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        $request->validate([
+         $request->validate([
             'content' => 'required|string|max:1000',
         ]);
 
-        $comment->update([
-            'content' => $request->content,
-        ]);
+        $comment = Comment::findOrFail($id);
+        $comment->content = $request->input('content');
+        $comment->save();
 
-        return response()->json(['message' => 'Comment updated successfully', 'comment' => $comment]);
+        return response()->json([
+            'message' => 'Commentaire mis à jour avec succès',
+            'comment' => $comment->load('student')
+        ]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-     public function destroy($id)
+     public function destroy(Comment $comment, Request $request, $id)
     {
-        $comment = Comment::findOrFail($id);
-
-        // Optionnel : autoriser seulement le propriétaire ou un admin
-        if ($comment->user_id !== auth()->id()) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+        if ($comment->student_id !== $request->input('student_id')) {
+            return response()->json(['error' => 'Non autorisé'], 403);
         }
 
+        $comment = Comment::findOrFail($id);
         $comment->delete();
 
-        return response()->json(['message' => 'Comment deleted successfully']);
+        return response()->json([
+            'message' => 'Commentaire supprimé avec succès'
+        ]);
     }
 }

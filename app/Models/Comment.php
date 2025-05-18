@@ -11,23 +11,22 @@ class Comment extends Model
 
     protected $fillable = [
         'content',
-        'user_id', // L'utilisateur qui a posté le commentaire
+        'student_id', // L'utilisateur qui a posté le commentaire
         'document_id',
     ];
 
     // Relation avec l'utilisateur qui a posté le commentaire
-    public function user()
+    public function student()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Student::class);
     }
 
-    // Relation avec le document auquel ce commentaire appartient
+    // commentaire belongs to one doc
     public function document()
     {
         return $this->belongsTo(Document::class);
     }
 
-    // récupérer tous les commentaires d'un document 
     public function comments()
     {
         return $this->hasMany(Comment::class);
